@@ -1,0 +1,48 @@
+.App {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.chat-container, .admin-panel {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin: 10px;
+  width: 300px;
+}
+
+.messages {
+  border: 1px solid #ccc;
+  height: 200px;
+  overflow-y: scroll;
+  margin-bottom: 10px;
+}
+
+.message {
+  padding: 5px;
+}
+
+.message.user {
+  text-align: right;
+}
+
+.input-container {
+  display: flex;
+}
+
+.input-container input {
+  flex: 1;
+  padding: 5px;
+  margin-right: 5px;
+}
+
+.flex-id-container {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.flex-id-container input {
+  flex: 1;
+  padding: 5px;
+  margin-right: 5px;
+}

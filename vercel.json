@@ -1,0 +1,20 @@
+{
+    "version": 2,
+    "builds": [
+      {
+        "src": "main.js", 
+        "use": "@vercel/node"
+      }
+    ],
+    "routes": [
+      {
+        "src": "/api/(.*)",
+        "dest": "api/index/$1",
+        "methods": ["GET", "POST", "PUT", "PATCH", "DELETE"]
+      },
+      {
+        "src": "/(.*)",
+        "dest": "main.js"
+      }
+    ]
+  }
