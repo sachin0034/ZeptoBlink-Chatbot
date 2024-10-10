@@ -6,7 +6,8 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 
 const app = express();
-const port = 5000;
+const PORT = process.env.PORT || 3001; // Change to 3001 or another port
+
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -67,7 +68,7 @@ wss.on('connection', (ws, req) => {
   let flex360Id = null;
   let isRegistered = false;
 
-  ws.send("Welcome! Please provide your FLEX360_ID to get started, or type 'guest' to continue as an unregistered user.");
+  ws.send("Welcome! Please provide your ORDER_ID to get started, or type 'guest' to continue as an unregistered user.");
 
   ws.on('message', async (message) => {
     console.log('Received message:', message.toString());
@@ -161,7 +162,7 @@ Please provide a response based on the user's data and query. If the query is ab
               const response = await openai.chat.completions.create({
                 model: "gpt-3.5-turbo",
                 messages: [
-                  { role: "system", content: "You are a helpful assistant. If user data is available, provide accurate information based on it. For unregistered users, provide general helpful responses." },
+                  { role: "system", content: "You are a helpful assistant. If user data is available, provide accurate information based on it. For unregistered users, provide general helpful responses.If some ask you name tell them my name is zeptoblink build by sachin" },
                   { role: "user", content: context }
                 ],
               });
@@ -212,8 +213,8 @@ async function fetchOldConversations(flex360Id) {
 app.use(express.static('public'));
 
 // Starting the Express server
-const server = app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+const server = app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
 
 // Handling WebSocket upgrade requests

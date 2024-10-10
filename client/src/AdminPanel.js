@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-function AdminPanel() {
+const AdminPanel = () => {
   const [flexId, setFlexId] = useState('');
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [isConnectedToUser, setIsConnectedToUser] = useState(false);
   const ws = useRef(null);
+  const messagesEndRef = useRef(null);
 
   useEffect(() => {
     connectWebSocket();
@@ -17,13 +19,16 @@ function AdminPanel() {
     };
   }, []);
 
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
   const connectWebSocket = () => {
-    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    // const wsUrl = `${protocol}://watch-dog-llm.vercel.app`;
-    // const wsUrl = "https://watch-dog-llm.vercel.app";
-    // const wsUrl = "https://watch-dog-llm.vercel.app";
-    // const wsUrl = "http://54.252.184.92:5000";
-    const wsUrl = "http://localhost:5000"
+    const wsUrl = "http://localhost:3001";
     ws.current = new WebSocket(wsUrl);
 
     ws.current.onopen = () => {
@@ -33,7 +38,15 @@ function AdminPanel() {
 
     ws.current.onmessage = (event) => {
       console.log('Received message:', event.data);
-      setMessages((prevMessages) => [...prevMessages, { role: 'system', content: event.data }]);
+      if (event.data.startsWith('Connected to user') || event.data.startsWith('Disconnected from user')) {
+        setMessages((prevMessages) => [...prevMessages, { role: 'system', content: event.data }]);
+        setIsConnectedToUser(event.data.startsWith('Connected to user'));
+      } else if (event.data.startsWith('User:') || event.data.startsWith('Bot:')) {
+        const [role, content] = event.data.split(': ');
+        setMessages((prevMessages) => [...prevMessages, { role: role.toLowerCase(), content }]);
+      } else {
+        setMessages((prevMessages) => [...prevMessages, { role: 'system', content: event.data }]);
+      }
     };
 
     ws.current.onerror = (error) => {
@@ -68,56 +81,142 @@ function AdminPanel() {
     setInput('');
   };
 
-  useEffect(() => {
-    if (ws.current) {
-      ws.current.onmessage = (event) => {
-        console.log('Received message:', event.data);
-        if (event.data.startsWith('Connected to user') || event.data.startsWith('Disconnected from user')) {
-          setMessages((prevMessages) => [...prevMessages, { role: 'system', content: event.data }]);
-        } else if (event.data.startsWith('User:') || event.data.startsWith('Bot:')) {
-          const [role, content] = event.data.split(': ');
-          setMessages((prevMessages) => [...prevMessages, { role: role.toLowerCase(), content }]);
-        } else {
-          setMessages((prevMessages) => [...prevMessages, { role: 'system', content: event.data }]);
-        }
-      };
-    }
-  }, []);
+  const filteredMessages = messages.filter(msg => 
+    msg.content.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <div className="admin-panel">
-      <div className="flex-id-container">
+    <div style={{
+      display: 'flex', 
+      flexDirection: 'column', 
+      height: '100vh', 
+      backgroundColor: '#f0f0f0',
+      maxWidth: '800px',
+      margin: '0 auto',
+      border: '1px solid #ccc',
+      boxShadow: '0 0 10px rgba(0,0,0,0.1)'
+    }}>
+      <div style={{
+        backgroundColor: '#4299e1', 
+        color: 'white', 
+        padding: '1rem', 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center'
+      }}>
+        <h1 style={{margin: 0, fontSize: '1.5rem'}}>Admin Chat</h1>
         <input
           type="text"
-          value={flexId}
-          onChange={(e) => setFlexId(e.target.value)}
-          placeholder="Enter FLEX360_ID"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search messages..."
+          style={{padding: '0.5rem', borderRadius: '4px', border: 'none'}}
         />
-        <button onClick={connectToUser} disabled={!isConnected || isConnectedToUser}>Connect</button>
-        {isConnectedToUser && (
-          <button onClick={disconnectFromUser}>Disconnect</button>
-        )}
       </div>
-      <div className="messages">
-        {messages.map((msg, index) => (
-          <div key={index} className={`message ${msg.role}`}>
-            {msg.content}
+      <div style={{backgroundColor: 'white', padding: '1rem', borderBottom: '1px solid #ccc'}}>
+        <div style={{display: 'flex', gap: '0.5rem'}}>
+          <input
+            type="text"
+            value={flexId}
+            onChange={(e) => setFlexId(e.target.value)}
+            placeholder="Enter USER ID"
+            style={{flexGrow: 1, padding: '0.5rem', border: '1px solid #ccc', borderRadius: '4px'}}
+          />
+          <button
+            onClick={isConnectedToUser ? disconnectFromUser : connectToUser}
+            disabled={!isConnected}
+            style={{
+              backgroundColor: isConnected ? (isConnectedToUser ? '#f56565' : '#4299e1') : '#cbd5e0',
+              color: 'white',
+              padding: '0.5rem 1rem',
+              borderRadius: '4px',
+              border: 'none'
+            }}
+          >
+            {isConnectedToUser ? 'Disconnect' : 'Connect'}
+          </button>
+        </div>
+      </div>
+      
+      {isConnectedToUser ? (
+        <>
+          <div style={{flexGrow: 1, overflowY: 'auto', padding: '1rem'}}>
+            {filteredMessages.map((msg, index) => (
+              <div key={index} style={{display: 'flex', justifyContent: msg.role === 'admin' ? 'flex-end' : 'flex-start', marginBottom: '0.5rem'}}>
+                <div style={{
+                  maxWidth: '70%', 
+                  padding: '0.75rem', 
+                  borderRadius: '0.5rem', 
+                  backgroundColor: msg.role === 'admin' ? '#4299e1' : msg.role === 'system' ? '#faf089' : '#e2e8f0',
+                  color: msg.role === 'admin' ? 'white' : 'black'
+                }}>
+                  {msg.content}
+                </div>
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
           </div>
-        ))}
-      </div>
-      <div className="input-container">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-          placeholder={isConnected ? "Type your message..." : "Connecting..."}
-          disabled={!isConnected || !isConnectedToUser}
-        />
-        <button onClick={sendMessage} disabled={!isConnected || !isConnectedToUser}>Send</button>
-      </div>
+          <div style={{backgroundColor: 'white', padding: '1rem', borderTop: '1px solid #ccc'}}>
+            <div style={{display: 'flex', gap: '0.5rem'}}>
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                placeholder="Type your message..."
+                style={{flexGrow: 1, padding: '0.5rem', border: '1px solid #ccc', borderRadius: '4px'}}
+              />
+              <button
+                onClick={sendMessage}
+                style={{backgroundColor: '#4299e1', color: 'white', padding: '0.5rem 1rem', borderRadius: '4px', border: 'none'}}
+              >
+                Send
+              </button>
+            </div>
+          </div>
+        </>
+      ) : (
+        <div style={{
+          flexGrow: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: 'white',
+          padding: '2rem',
+          textAlign: 'center'
+        }}>
+          <div style={{
+            fontSize: '1.5rem',
+            fontWeight: 'bold',
+            marginBottom: '1rem',
+            color: '#4a5568'
+          }}>
+            Not Connected to Any User
+          </div>
+          <div style={{
+            fontSize: '1rem',
+            color: '#718096',
+            maxWidth: '400px'
+          }}>
+            Enter a USER ID in the field above and click "Connect" to start a chat session with a user.
+          </div>
+          {!isConnected && (
+            <div style={{
+              marginTop: '2rem',
+              padding: '1rem',
+              backgroundColor: '#fed7d7',
+              color: '#9b2c2c',
+              borderRadius: '0.5rem',
+              maxWidth: '400px'
+            }}>
+              Not connected to WebSocket. Attempting to reconnect...
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
-}
+};
 
 export default AdminPanel;

@@ -1,33 +1,47 @@
-# Getting Started with Create React App
+# Zepto Blink - WebSocket-Based Chatbot
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Zepto Blink is a powerful chatbot built using WebSocket functionality to serve both guest and registered users. It allows seamless communication between users, bots, and admins.
 
-## Available Scripts
+![Interface](Images\Screenshot (850).png)
 
-In the project directory, you can run:
+## Features
 
-### `npm start`
+### 1. Guest User Interaction
+- If the user is not registered, they can interact with the bot as a guest. The bot will reply to general queries and provide basic assistance.
+  
+  ![Guest User Interaction](Images\Screenshot (851).png)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 2. Registered User Interaction
+- Registered users are prompted to provide their user ID.
+- The bot fetches and displays user information based on API data.
+- Users can ask questions like "Tell my registration date," and the bot will retrieve and display the relevant details.
+  
+  ![Registered User Interaction](Images\Screenshot (852).png)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### 3. Admin User Connection
+- Admins can directly connect with users by providing the user ID.
+- The bot will disconnect, allowing the admin and user to communicate freely.
+- Admins can also see the past chat history between the user and the bot.
+- Once the admin disconnects, the user is reconnected with the bot.
 
-### `npm test`
+  ![Admin User Connection](Images\Screenshot (853).png)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 4. Chat History
+- Admins can view the past interactions between the bot and users to provide better assistance and manage user requests efficiently.
+  
+  ![Chat History](Images\Screenshot (853).png)
 
-### `npm run build`
+### 5. Admin Rights
+- Admins have the authority to disconnect from the user at any time, after which the user will automatically reconnect with the bot for further queries.
+  
+  ![Admin Disconnect](Images\Screenshot (854).png)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## How It Works
+- **Guest User**: The bot handles basic queries.
+- **Registered User**: After authenticating with a user ID, the bot fetches data through API calls and answers user-specific questions.
+- **Admin**: Admins can interact with users, view past chats, and disconnect to revert control back to the bot.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-
-
+## Technologies Used
+- WebSocket
+- API Integration
+- User/Session Management
