@@ -45,3 +45,9 @@ Zepto Blink is a powerful chatbot built using WebSocket functionality to serve b
 - WebSocket
 - API Integration
 - User/Session Management
+
+
+## Demo Video
+Watch the demo of Zepto Blink in action:
+
+[Click here to watch the video](Images/Demo.mp4)
